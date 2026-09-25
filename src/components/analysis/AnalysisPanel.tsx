@@ -1,217 +1,449 @@
 import {
   Activity,
-  AlertCircle,
   CheckCircle2,
-  Clock3,
   HeartPulse,
-  Loader2,
+  RefreshCw,
   ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
-import type { AnalysisState } from "../../types/ecg";
+import type {
+  AnalysisState,
+} from "../../types/ecg";
+
+import Button from "../common/Button";
+import Card from "../common/Card";
+import Disclaimer from "../common/Disclaimer";
+import Loading from "../common/Loading";
+
+/*
+ * ============================================================
+ * PROPS
+ * ============================================================
+ */
 
 interface AnalysisPanelProps {
   analysis: AnalysisState;
   onAnalyze: () => void;
 }
 
+/*
+ * ============================================================
+ * HELPERS
+ * ============================================================
+ */
+
+function formatConfidence(
+  confidence: number
+): string {
+  /*
+   * Supports both:
+   * 0.95  -> 95%
+   * 95    -> 95%
+   */
+  const percentage =
+    confidence <= 1
+      ? confidence * 100
+      : confidence;
+
+  return `${percentage.toFixed(1)}%`;
+}
+
+function getConfidenceWidth(
+  confidence: number
+): string {
+  const percentage =
+    confidence <= 1
+      ? confidence * 100
+      : confidence;
+
+  return `${Math.min(
+    Math.max(percentage, 0),
+    100
+  )}%`;
+}
+
+/*
+ * ============================================================
+ * ANALYSIS PANEL
+ * ============================================================
+ */
+
 function AnalysisPanel({
   analysis,
   onAnalyze,
 }: AnalysisPanelProps) {
-  const { status, result, error } = analysis;
+  const {
+    status,
+    result,
+    error,
+  } = analysis;
+
+  /*
+   * ==========================================================
+   * IDLE STATE
+   * ==========================================================
+   */
+
+  if (status === "idle") {
+    return (
+      <div className="space-y-4">
+        <Card padding="lg">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+              <Sparkles
+                className="h-5 w-5 text-blue-600"
+                aria-hidden="true"
+              />
+            </div>
+
+            <div>
+              <h2 className="font-semibold text-slate-900">
+                AI ECG Analysis
+              </h2>
+
+              <p className="mt-1 text-sm leading-5 text-slate-500">
+                Analyze the uploaded ECG using the connected
+                AI analysis service.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={onAnalyze}
+            >
+              <Activity
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Analyze ECG
+            </Button>
+          </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
+            <ShieldCheck
+              className="h-4 w-4"
+              aria-hidden="true"
+            />
+
+            Secure analysis
+          </div>
+        </Card>
+
+        <Disclaimer compact />
+      </div>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * PROCESSING STATE
+   * ==========================================================
+   */
+
+  if (status === "processing") {
+    return (
+      <div className="space-y-4">
+        <Card padding="lg">
+          <Loading
+            text="Analyzing your ECG..."
+            size="lg"
+          />
+
+          <div className="mt-6 rounded-xl bg-blue-50 p-4">
+            <div className="flex items-start gap-3">
+              <Sparkles
+                className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
+                aria-hidden="true"
+              />
+
+              <p className="text-xs leading-5 text-slate-600">
+                The ECG is being processed. Please keep this
+                page open until the analysis is complete.
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        <Disclaimer compact />
+      </div>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * ERROR STATE
+   * ==========================================================
+   */
+
+  if (status === "error") {
+    return (
+      <div className="space-y-4">
+        <Card padding="lg">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50">
+              <RefreshCw
+                className="h-5 w-5 text-red-600"
+                aria-hidden="true"
+              />
+            </div>
+
+            <div className="min-w-0">
+              <h2 className="font-semibold text-slate-900">
+                Analysis Failed
+              </h2>
+
+              <p className="mt-1 text-sm leading-5 text-red-600">
+                {error ??
+                  "Unable to analyze this ECG."}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <Button
+              variant="outline"
+              size="lg"
+              fullWidth
+              onClick={onAnalyze}
+            >
+              <RefreshCw
+                className="h-4 w-4"
+                aria-hidden="true"
+              />
+
+              Try Again
+            </Button>
+          </div>
+        </Card>
+
+        <Disclaimer compact />
+      </div>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * SUCCESS STATE
+   * ==========================================================
+   */
+
+  if (
+    status === "success" &&
+    result
+  ) {
+    return (
+      <div className="space-y-4">
+        {/* ====================================================
+            RESULT HEADER
+            ==================================================== */}
+
+        <Card padding="lg">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                <CheckCircle2
+                  className="h-5 w-5 text-emerald-600"
+                  aria-hidden="true"
+                />
+              </div>
+
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  Analysis Result
+                </p>
+
+                <h2 className="mt-1 text-lg font-bold text-slate-900">
+                  {result.prediction}
+                </h2>
+              </div>
+            </div>
+
+            <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              Complete
+            </span>
+          </div>
+
+          {/* ==================================================
+              CONFIDENCE
+              ================================================== */}
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-slate-600">
+                Confidence
+              </span>
+
+              <span className="text-sm font-bold text-slate-900">
+                {formatConfidence(
+                  result.confidence
+                )}
+              </span>
+            </div>
+
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                style={{
+                  width:
+                    getConfidenceWidth(
+                      result.confidence
+                    ),
+                }}
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* ====================================================
+            VITALS
+            ==================================================== */}
+
+        <div className="grid grid-cols-2 gap-3">
+          <Card
+            padding="md"
+            className="min-w-0"
+          >
+            <div className="flex items-center gap-2">
+              <HeartPulse
+                className="h-4 w-4 text-red-500"
+                aria-hidden="true"
+              />
+
+              <span className="text-xs font-medium text-slate-500">
+                Heart Rate
+              </span>
+            </div>
+
+            <div className="mt-3">
+              {result.heartRate !== null ? (
+                <>
+                  <span className="text-2xl font-bold text-slate-900">
+                    {result.heartRate}
+                  </span>
+
+                  <span className="ml-1 text-xs text-slate-400">
+                    BPM
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm text-slate-400">
+                  Not available
+                </span>
+              )}
+            </div>
+          </Card>
+
+          <Card
+            padding="md"
+            className="min-w-0"
+          >
+            <div className="flex items-center gap-2">
+              <Activity
+                className="h-4 w-4 text-blue-600"
+                aria-hidden="true"
+              />
+
+              <span className="text-xs font-medium text-slate-500">
+                Rhythm
+              </span>
+            </div>
+
+            <div className="mt-3">
+              <p className="truncate text-sm font-semibold text-slate-900">
+                {result.rhythm ??
+                  "Not available"}
+              </p>
+            </div>
+          </Card>
+        </div>
+
+        {/* ====================================================
+            FINDINGS
+            ==================================================== */}
+
+        <Card padding="lg">
+          <h3 className="text-sm font-semibold text-slate-900">
+            Findings
+          </h3>
+
+          {result.findings.length > 0 ? (
+            <ul className="mt-4 space-y-3">
+              {result.findings.map(
+                (finding, index) => (
+                  <li
+                    key={`${finding}-${index}`}
+                    className="flex items-start gap-3"
+                  >
+                    <CheckCircle2
+                      className="mt-0.5 h-4 w-4 shrink-0 text-blue-600"
+                      aria-hidden="true"
+                    />
+
+                    <span className="text-sm leading-5 text-slate-600">
+                      {finding}
+                    </span>
+                  </li>
+                )
+              )}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-slate-400">
+              No findings were returned by the analysis
+              service.
+            </p>
+          )}
+        </Card>
+
+        {/* ====================================================
+            ANALYZE AGAIN
+            ==================================================== */}
+
+        <Button
+          variant="outline"
+          size="md"
+          fullWidth
+          onClick={onAnalyze}
+        >
+          <RefreshCw
+            className="h-4 w-4"
+            aria-hidden="true"
+          />
+
+          Analyze Again
+        </Button>
+
+        {/* ====================================================
+            DISCLAIMER
+            ==================================================== */}
+
+        <Disclaimer compact>
+          AI-generated ECG analysis is provided for
+          informational purposes only. It does not constitute
+          a medical diagnosis. Results should be reviewed and
+          interpreted by a qualified healthcare professional.
+        </Disclaimer>
+      </div>
+    );
+  }
+
+  /*
+   * ==========================================================
+   * FALLBACK
+   * ==========================================================
+   */
 
   return (
-    <aside className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {/* Header */}
-      <div className="border-b border-slate-200 p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-            <Activity className="h-5 w-5 text-blue-600" />
-          </div>
-
-          <div>
-            <h2 className="font-semibold text-slate-900">
-              ECG Analysis
-            </h2>
-
-            <p className="text-xs text-slate-500">
-              AI-assisted analysis
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-5">
-        {status === "idle" && (
-          <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-              <HeartPulse className="h-6 w-6 text-slate-500" />
-            </div>
-
-            <h3 className="mt-4 font-medium text-slate-900">
-              Ready for analysis
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Start the analysis to send the uploaded ECG
-              to the AI analysis service.
-            </p>
-
-            <button
-              type="button"
-              onClick={onAnalyze}
-              className="mt-6 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              Analyze ECG
-            </button>
-          </div>
-        )}
-
-        {status === "processing" && (
-          <div className="py-8 text-center">
-            <Loader2 className="mx-auto h-10 w-10 animate-spin text-blue-600" />
-
-            <h3 className="mt-5 font-medium text-slate-900">
-              Analyzing ECG...
-            </h3>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Please wait while the ECG is being processed.
-            </p>
-
-            <div className="mt-6 h-2 overflow-hidden rounded-full bg-slate-100">
-              <div className="h-full w-2/3 animate-pulse rounded-full bg-blue-600" />
-            </div>
-          </div>
-        )}
-
-        {status === "error" && (
-          <div className="text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-
-            <h3 className="mt-4 font-medium text-slate-900">
-              Analysis failed
-            </h3>
-
-            <p className="mt-2 text-sm text-red-600">
-              {error}
-            </p>
-
-            <button
-              type="button"
-              onClick={onAnalyze}
-              className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {status === "success" && result && (
-          <div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                    Result
-                  </p>
-
-                  <p className="mt-1 text-lg font-semibold text-slate-900">
-                    {result.prediction}
-                  </p>
-                </div>
-
-                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">
-                  Confidence
-                </p>
-
-                <p className="mt-1 text-lg font-semibold text-slate-900">
-                  {Math.round(result.confidence * 100)}%
-                </p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 p-4">
-                <p className="text-xs text-slate-500">
-                  Heart Rate
-                </p>
-
-                <p className="mt-1 text-lg font-semibold text-slate-900">
-                  {result.heartRate
-                    ? `${result.heartRate} BPM`
-                    : "—"}
-                </p>
-              </div>
-            </div>
-
-            {result.rhythm && (
-              <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 p-4">
-                <HeartPulse className="h-5 w-5 text-blue-600" />
-
-                <div>
-                  <p className="text-xs text-slate-500">
-                    Rhythm
-                  </p>
-
-                  <p className="font-medium text-slate-900">
-                    {result.rhythm}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-5">
-              <h3 className="font-semibold text-slate-900">
-                Findings
-              </h3>
-
-              <div className="mt-3 space-y-2">
-                {result.findings.map((finding, index) => (
-                  <div
-                    key={`${finding}-${index}`}
-                    className="flex gap-3 rounded-lg bg-slate-50 p-3"
-                  >
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-
-                    <p className="text-sm leading-5 text-slate-600">
-                      {finding}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center gap-2 text-xs text-slate-400">
-              <Clock3 className="h-4 w-4" />
-              Analysis completed
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Disclaimer */}
-      <div className="border-t border-slate-200 p-4">
-        <div className="flex gap-2">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-
-          <p className="text-[11px] leading-5 text-slate-500">
-            AI-generated results are intended for clinical
-            assistance and informational purposes only. They
-            should not replace evaluation by a qualified
-            healthcare professional.
-          </p>
-        </div>
-      </div>
-    </aside>
+    <Card padding="lg">
+      <p className="text-sm text-slate-500">
+        ECG analysis is ready.
+      </p>
+    </Card>
   );
 }
 
