@@ -1,25 +1,24 @@
 import { useState } from "react";
+
 import {
   Activity,
   Bell,
   ChevronDown,
+  Grid2X2,
   History as HistoryIcon,
   Info,
-  LayoutDashboard,
   Menu,
   ShieldCheck,
   X,
 } from "lucide-react";
-import {
-  NavLink,
-  useLocation,
-} from "react-router-dom";
+
+import { NavLink } from "react-router-dom";
 
 const navigation = [
   {
     label: "Dashboard",
     path: "/",
-    icon: LayoutDashboard,
+    icon: Grid2X2,
   },
   {
     label: "History",
@@ -34,159 +33,154 @@ const navigation = [
 ];
 
 function Header() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const location = useLocation();
-
-  const isActive = (path: string) => {
-    if (path === "/") {
-      return location.pathname === "/";
-    }
-
-    return location.pathname.startsWith(path);
-  };
+  const [mobileOpen, setMobileOpen] =
+    useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 shadow-[0_4px_24px_rgba(15,23,42,0.04)] backdrop-blur-xl">
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-xl">
+      <div className="mx-auto flex h-[72px] w-full max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:h-[76px] lg:px-8">
+
+        {/* ==================================================
+            LOGO
+        =================================================== */}
+
         <NavLink
           to="/"
           onClick={() => setMobileOpen(false)}
-          className="group flex items-center gap-3"
+          className="flex min-w-0 items-center gap-3"
         >
-          <div className="relative">
-            <div className="absolute inset-0 rounded-xl bg-blue-500/20 blur-md transition group-hover:bg-blue-500/30" />
-
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20">
-              <Activity
-                size={21}
-                strokeWidth={2.4}
-              />
-            </div>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20">
+            <Activity size={23} strokeWidth={2.2} />
           </div>
 
-          <div className="hidden sm:block">
+          <div className="hidden min-w-0 sm:block">
             <div className="flex items-center gap-2">
-              <p className="text-[15px] font-bold tracking-tight text-slate-950">
+              <span className="truncate text-base font-bold tracking-tight text-slate-950 lg:text-lg">
                 ECG Analyzer
-              </p>
+              </span>
 
-              <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-blue-600">
+              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-600">
                 AI
               </span>
             </div>
 
-            <p className="mt-0.5 text-[10px] font-medium tracking-wide text-slate-400">
+            <p className="truncate text-[11px] font-medium text-slate-400">
               Intelligent ECG Analysis
             </p>
           </div>
         </NavLink>
 
-        <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center rounded-xl border border-slate-200/80 bg-slate-50/80 p-1 md:flex">
+        {/* ==================================================
+            DESKTOP NAV
+        =================================================== */}
+
+        <nav className="hidden items-center rounded-2xl border border-slate-200 bg-slate-50/80 p-1 lg:flex">
           {navigation.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.path);
 
             return (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.path === "/"}
-                className={[
-                  "relative inline-flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-all duration-200",
-                  active
-                    ? "bg-white text-blue-700 shadow-sm ring-1 ring-slate-200/70"
-                    : "text-slate-500 hover:bg-white/70 hover:text-slate-900",
-                ].join(" ")}
+                className={({ isActive }) =>
+                  [
+                    "relative flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all",
+                    isActive
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-500 hover:bg-white/70 hover:text-slate-900",
+                  ].join(" ")
+                }
               >
-                <Icon
-                  size={15}
-                  strokeWidth={active ? 2.3 : 2}
-                />
+                {({ isActive }) => (
+                  <>
+                    <Icon size={17} />
 
-                {item.label}
+                    {item.label}
 
-                {active && (
-                  <span className="absolute -bottom-[5px] left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-blue-600" />
+                    {isActive && (
+                      <span className="absolute -bottom-1 left-1/2 h-0.5 w-6 -translate-x-1/2 rounded-full bg-blue-600" />
+                    )}
+                  </>
                 )}
               </NavLink>
             );
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 lg:flex">
+        {/* ==================================================
+            RIGHT SIDE
+        =================================================== */}
+
+        <div className="flex items-center gap-2 sm:gap-3">
+
+          {/* System status */}
+          <div className="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 md:flex">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+
+              <span className="relative h-2 w-2 rounded-full bg-emerald-500" />
             </span>
 
-            <span className="text-[11px] font-semibold text-emerald-700">
-              System Ready
-            </span>
+            System Ready
           </div>
 
+          {/* Notification */}
           <button
             type="button"
-            className="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-transparent text-slate-500 transition-all hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900"
             aria-label="Notifications"
-            title="Notifications"
+            className="hidden h-10 w-10 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-900 sm:flex"
           >
-            <Bell
-              size={18}
-              strokeWidth={2}
-              className="transition-transform group-hover:scale-105"
-            />
-
-            <span className="absolute right-[9px] top-[8px] h-2 w-2 rounded-full border-2 border-white bg-blue-600" />
+            <Bell size={19} />
           </button>
 
-          <div className="hidden h-7 w-px bg-slate-200 sm:block" />
+          <div className="hidden h-8 w-px bg-slate-200 sm:block" />
 
-          <div className="hidden items-center gap-2.5 rounded-xl border border-transparent px-2 py-1.5 transition hover:border-slate-200 hover:bg-slate-50 sm:flex">
+          {/* User */}
+          <button
+            type="button"
+            className="hidden items-center gap-2 rounded-xl p-1.5 hover:bg-slate-50 sm:flex"
+          >
             <div className="relative">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[11px] font-bold text-white shadow-md shadow-blue-600/15">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white shadow-md shadow-blue-600/20">
                 GK
               </div>
 
               <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+
             </div>
 
-            <div className="hidden lg:block">
-              <p className="text-xs font-bold leading-tight text-slate-900">
+            <div className="hidden text-left md:block">
+              <p className="text-xs font-bold text-slate-900">
                 Gaurav Kumar
               </p>
 
-              <div className="mt-0.5 flex items-center gap-1">
-                <ShieldCheck
-                  size={10}
-                  className="text-blue-500"
-                />
-
-                <p className="text-[10px] font-medium text-slate-400">
-                  User
-                </p>
+              <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                <ShieldCheck size={10} className="text-blue-500" />
+                User
               </div>
             </div>
 
             <ChevronDown
-              size={14}
-              className="hidden text-slate-400 lg:block"
+              size={15}
+              className="ml-1 text-slate-400"
             />
-          </div>
+          </button>
 
+          {/* Mobile menu button */}
           <button
             type="button"
-            onClick={() =>
-              setMobileOpen((current) => !current)
-            }
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 md:hidden"
             aria-label={
               mobileOpen
                 ? "Close navigation"
                 : "Open navigation"
             }
             aria-expanded={mobileOpen}
+            onClick={() =>
+              setMobileOpen((value) => !value)
+            }
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm lg:hidden"
           >
             {mobileOpen ? (
               <X size={20} />
@@ -197,101 +191,76 @@ function Header() {
         </div>
       </div>
 
+      {/* ====================================================
+          MOBILE NAVIGATION
+      ===================================================== */}
+
       {mobileOpen && (
-        <div className="border-t border-slate-200/80 bg-white/95 shadow-lg shadow-slate-900/5 backdrop-blur-xl md:hidden">
-          <nav className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-            <div className="mb-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
-                  <Activity size={18} />
-                </div>
+        <div className="border-t border-slate-200 bg-white px-4 pb-4 pt-3 shadow-lg lg:hidden">
 
-                <div>
-                  <p className="text-sm font-bold text-slate-900">
-                    ECG Analyzer
-                  </p>
+          <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 p-3">
 
-                  <p className="text-[11px] text-slate-500">
-                    AI-assisted ECG analysis
-                  </p>
-                </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs font-bold text-white">
+              GK
+            </div>
 
-                <div className="ml-auto flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-slate-900">
+                Gaurav Kumar
+              </p>
 
-                  <span className="text-[10px] font-semibold text-emerald-700">
-                    Ready
-                  </span>
-                </div>
+              <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                <ShieldCheck
+                  size={11}
+                  className="text-blue-500"
+                />
+
+                User
               </div>
             </div>
 
-            <div className="space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1.5 text-[10px] font-semibold text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
 
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    end={item.path === "/"}
-                    onClick={() => setMobileOpen(false)}
-                    className={[
-                      "flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all",
-                      active
-                        ? "bg-blue-50 text-blue-700 shadow-sm"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-950",
-                    ].join(" ")}
-                  >
-                    <div
-                      className={[
-                        "flex h-9 w-9 items-center justify-center rounded-lg",
-                        active
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "bg-slate-100 text-slate-500",
-                      ].join(" ")}
-                    >
-                      <Icon size={18} />
-                    </div>
-
-                    <span>{item.label}</span>
-
-                    {active && (
-                      <span className="ml-auto h-2 w-2 rounded-full bg-blue-600" />
-                    )}
-                  </NavLink>
-                );
-              })}
+              Ready
             </div>
 
-            <div className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="relative">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-xs font-bold text-white">
-                  GK
-                </div>
+          </div>
 
-                <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-slate-50 bg-emerald-500" />
-              </div>
+          <nav className="grid gap-1.5">
+            {navigation.map((item) => {
+              const Icon = item.icon;
 
-              <div>
-                <p className="text-sm font-bold text-slate-900">
-                  Gaurav Kumar
-                </p>
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === "/"}
+                  onClick={() =>
+                    setMobileOpen(false)
+                  }
+                  className={({ isActive }) =>
+                    [
+                      "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold",
+                      isActive
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-slate-600 hover:bg-slate-50",
+                    ].join(" ")
+                  }
+                >
+                  <Icon size={18} />
 
-                <div className="mt-0.5 flex items-center gap-1">
-                  <ShieldCheck
-                    size={11}
-                    className="text-blue-500"
-                  />
-
-                  <p className="text-[11px] font-medium text-slate-500">
-                    User account
-                  </p>
-                </div>
-              </div>
-            </div>
+                  {item.label}
+                </NavLink>
+              );
+            })}
           </nav>
+
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+
+            System Ready
+          </div>
         </div>
       )}
     </header>
