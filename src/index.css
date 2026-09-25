@@ -1,8 +1,5 @@
 @import "tailwindcss";
-
-/* ============================================================
-   GLOBAL
-   ============================================================ */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
 
 html {
   min-height: 100%;
@@ -10,11 +7,25 @@ html {
   background: #f7faff;
 }
 
+body,
+button,
+input,
+textarea,
+select {
+  font-family:
+    "Poppins",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif !important;
+}
+
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-
   background:
     radial-gradient(
       circle at 10% 0%,
@@ -27,25 +38,12 @@ body {
       transparent 30rem
     ),
     #f7faff;
-
   color: #0f172a;
-
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
   font-size: 14px;
   line-height: 1.5;
-
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
   overflow-x: hidden;
 }
 
@@ -110,10 +108,6 @@ a {
   color: #1d4ed8;
 }
 
-/* ============================================================
-   SCROLLBAR
-   ============================================================ */
-
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -132,10 +126,6 @@ a {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
-
-/* ============================================================
-   ACCESSIBILITY
-   ============================================================ */
 
 :focus-visible {
   outline: 3px solid rgba(37, 99, 235, 0.22);
@@ -163,10 +153,6 @@ table {
   display: none !important;
 }
 
-/* ============================================================
-   RESPONSIVE CONTAINERS
-   ============================================================ */
-
 .container-responsive {
   width: 100%;
   max-width: 1280px;
@@ -186,10 +172,6 @@ table {
   }
 }
 
-/* ============================================================
-   TOUCH DEVICES
-   ============================================================ */
-
 @media (hover: hover) {
   button:not(:disabled),
   a {
@@ -203,19 +185,11 @@ table {
   }
 }
 
-/* ============================================================
-   TABLET
-   ============================================================ */
-
 @media (max-width: 1023px) {
   body {
     font-size: 14px;
   }
 }
-
-/* ============================================================
-   MOBILE
-   ============================================================ */
 
 @media (max-width: 639px) {
   html {
@@ -226,10 +200,6 @@ table {
     font-size: 13px;
   }
 
-  /*
-   * Prevent accidental oversized elements from
-   * creating horizontal scrolling.
-   */
   section,
   main,
   header,
@@ -237,27 +207,16 @@ table {
     max-width: 100%;
   }
 
-  /*
-   * Mobile buttons should remain easy to tap.
-   */
   button {
     min-height: 42px;
   }
 }
-
-/* ============================================================
-   VERY SMALL MOBILE
-   ============================================================ */
 
 @media (max-width: 380px) {
   body {
     font-size: 12px;
   }
 }
-
-/* ============================================================
-   REDUCED MOTION
-   ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   html {

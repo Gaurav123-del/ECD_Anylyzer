@@ -30,10 +30,10 @@ function ViewerControls({
   const canZoomIn = zoom < maxZoom;
 
   const buttonClass =
-    "flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40";
+    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-600";
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex max-w-full items-center gap-1 sm:gap-1.5">
       <button
         type="button"
         onClick={onZoomOut}
@@ -48,8 +48,8 @@ function ViewerControls({
       <button
         type="button"
         onClick={onReset}
-        className="min-w-[64px] rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-        aria-label="Reset zoom"
+        className="min-w-[56px] shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-2 text-[11px] font-semibold text-slate-600 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 active:scale-95 sm:min-w-[64px] sm:px-2.5 sm:text-xs"
+        aria-label={`Reset zoom to 100 percent. Current zoom is ${zoomPercentage} percent`}
         title="Reset zoom"
       >
         {zoomPercentage}%
