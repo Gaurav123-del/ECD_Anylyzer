@@ -1,303 +1,170 @@
-import {
-  useCallback,
-  useRef,
-  useState,
-} from "react";
-
-import type {
-  PointerEvent,
-  WheelEvent,
-} from "react";
-
-/*
- * ============================================================
- * VIEWER CONSTANTS
- * ============================================================
- */
+import { useCallback, useRef, useState } from "react";
+import type { PointerEvent, WheelEvent } from "react";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 5;
 const ZOOM_STEP = 0.25;
-
-/*
- * ============================================================
- * TYPES
- * ============================================================
- */
 
 interface Position {
   x: number;
   y: number;
 }
 
-/*
- * ============================================================
- * HOOK
- * ============================================================
- */
+function useECGViewer() {
+  const [zoom, setZoom] = useState(1);
+  const [position, setPosition] = useState<Position>({
+    x: 0,
+    y: 0,
+  });
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-export function useECGViewer() {
-  /*
-   * Current zoom level.
-   */
-  const [zoom, setZoom] =
-    useState(1);
+  const isDraggingRef = useRef(false);
+  const lastPointerRef = useRef<Position>({
+    x: 0,
+    y: 0,
+  });
 
-  /*
-   * Current image/PDF position.
-   */
-  const [position, setPosition] =
-    useState<Position>({
-      x: 0,
-      y: 0,
-    });
-
-  /*
-   * Fullscreen viewer reference.
-   */
-  const viewerRef =
-    useRef<HTMLDivElement>(null);
-
-  /*
-   * Drag state.
-   */
-  const isDragging =
-    useRef(false);
-
-  /*
-   * Pointer position when dragging begins.
-   */
-  const dragStart =
-    useRef<Position>({
-      x: 0,
-      y: 0,
-    });
-
-  /*
-   * Position when dragging begins.
-   */
-  const startPosition =
-    useRef<Position>({
-      x: 0,
-      y: 0,
-    });
-
-  /*
-   * ==========================================================
-   * RESET VIEW
-   * ==========================================================
-   */
-
-  const resetView =
-    useCallback(() => {
-      setZoom(1);
-
-      setPosition({
-        x: 0,
-        y: 0,
-      });
-    }, []);
-
-  /*
-   * ==========================================================
-   * ZOOM IN
-   * ==========================================================
-   */
-
-  const zoomIn =
-    useCallback(() => {
-      setZoom((currentZoom) =>
-        Math.min(
-          currentZoom + ZOOM_STEP,
-          MAX_ZOOM
-        )
-      );
-    }, []);
-
-  /*
-   * ==========================================================
-   * ZOOM OUT
-   * ==========================================================
-   */
-
-  const zoomOut =
-    useCallback(() => {
-      setZoom((currentZoom) =>
-        Math.max(
-          currentZoom - ZOOM_STEP,
-          MIN_ZOOM
-        )
-      );
-    }, []);
-
-  /*
-   * ==========================================================
-   * WHEEL ZOOM
-   * ==========================================================
-   */
-
-  const handleWheel =
-    useCallback(
-      (
-        event: WheelEvent<HTMLDivElement>
-      ) => {
-        event.preventDefault();
-
-        if (event.deltaY < 0) {
-          zoomIn();
-        } else {
-          zoomOut();
-        }
-      },
-      [zoomIn, zoomOut]
+  const zoomIn = useCallback(() => {
+    setZoom((current) =>
+      Math.min(
+        MAX_ZOOM,
+        Number((current + ZOOM_STEP).toFixed(2))
+      )
     );
+  }, []);
 
-  /*
-   * ==========================================================
-   * POINTER DOWN
-   * ==========================================================
-   */
+  const zoomOut = useCallback(() => {
+    setZoom((current) => {
+      const next = Math.max(
+        MIN_ZOOM,
+        Number((current - ZOOM_STEP).toFixed(2))
+      );
 
-  const handlePointerDown =
-    useCallback(
-      (
-        event: PointerEvent<HTMLDivElement>
-      ) => {
-        /*
-         * Do not allow panning at 100%
-         * or below.
-         */
-        if (zoom <= 1) {
-          return;
-        }
+      if (next <= 1) {
+        setPosition({ x: 0, y: 0 });
+      }
 
-        isDragging.current = true;
+      return next;
+    });
+  }, []);
 
-        dragStart.current = {
-          x: event.clientX,
-          y: event.clientY,
-        };
+  const reset = useCallback(() => {
+    setZoom(1);
+    setPosition({
+      x: 0,
+      y: 0,
+    });
+  }, []);
 
-        startPosition.current = {
-          ...position,
-        };
+  const handleWheel = useCallback(
+    (event: WheelEvent<HTMLDivElement>) => {
+      event.preventDefault();
 
-        event.currentTarget.setPointerCapture(
+      if (event.deltaY < 0) {
+        zoomIn();
+      } else {
+        zoomOut();
+      }
+    },
+    [zoomIn, zoomOut]
+  );
+
+  const handlePointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (zoom <= 1) return;
+
+      isDraggingRef.current = true;
+
+      lastPointerRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [zoom]
+  );
+
+  const handlePointerMove = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (!isDraggingRef.current || zoom <= 1) {
+        return;
+      }
+
+      const deltaX =
+        event.clientX - lastPointerRef.current.x;
+
+      const deltaY =
+        event.clientY - lastPointerRef.current.y;
+
+      lastPointerRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+
+      setPosition((current) => ({
+        x: current.x + deltaX,
+        y: current.y + deltaY,
+      }));
+    },
+    [zoom]
+  );
+
+  const handlePointerUp = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      isDraggingRef.current = false;
+
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(
           event.pointerId
         );
-      },
-      [position, zoom]
-    );
+      }
+    },
+    []
+  );
 
-  /*
-   * ==========================================================
-   * POINTER MOVE
-   * ==========================================================
-   */
+  const toggleFullscreen = useCallback(
+    async (element?: HTMLElement | null) => {
+      try {
+        if (!document.fullscreenElement) {
+          const target = element ?? document.documentElement;
 
-  const handlePointerMove =
-    useCallback(
-      (
-        event: PointerEvent<HTMLDivElement>
-      ) => {
-        if (!isDragging.current) {
-          return;
+          await target.requestFullscreen();
+
+          setIsFullscreen(true);
+        } else {
+          await document.exitFullscreen();
+
+          setIsFullscreen(false);
         }
+      } catch (error) {
+        console.error(
+          "Fullscreen operation failed:",
+          error
+        );
+      }
+    },
+    []
+  );
 
-        const deltaX =
-          event.clientX -
-          dragStart.current.x;
-
-        const deltaY =
-          event.clientY -
-          dragStart.current.y;
-
-        setPosition({
-          x:
-            startPosition.current.x +
-            deltaX,
-
-          y:
-            startPosition.current.y +
-            deltaY,
-        });
-      },
-      []
-    );
-
-  /*
-   * ==========================================================
-   * POINTER UP
-   * ==========================================================
-   */
-
-  const handlePointerUp =
-    useCallback(
-      (
-        event: PointerEvent<HTMLDivElement>
-      ) => {
-        isDragging.current = false;
-
-        if (
-          event.currentTarget.hasPointerCapture(
-            event.pointerId
-          )
-        ) {
-          event.currentTarget.releasePointerCapture(
-            event.pointerId
-          );
-        }
-      },
-      []
-    );
-
-  /*
-   * ==========================================================
-   * FULLSCREEN
-   * ==========================================================
-   */
-
-  const handleFullscreen =
-    useCallback(() => {
-      void viewerRef.current?.requestFullscreen?.();
-    }, []);
-
-  /*
-   * ==========================================================
-   * RETURN API
-   * ==========================================================
-   */
+  const canZoomIn = zoom < MAX_ZOOM;
+  const canZoomOut = zoom > MIN_ZOOM;
 
   return {
-    /*
-     * State
-     */
     zoom,
     position,
-
-    /*
-     * References
-     */
-    viewerRef,
-
-    /*
-     * Zoom controls
-     */
+    isFullscreen,
+    canZoomIn,
+    canZoomOut,
     zoomIn,
     zoomOut,
-    resetView,
-
-    /*
-     * Mouse / pointer controls
-     */
+    reset,
     handleWheel,
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
-
-    /*
-     * Fullscreen
-     */
-    handleFullscreen,
+    toggleFullscreen,
   };
 }
+
+export default useECGViewer;

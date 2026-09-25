@@ -1,10 +1,6 @@
-import type {
-  HTMLAttributes,
-  ReactNode,
-} from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-interface CardProps
-  extends HTMLAttributes<HTMLDivElement> {
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   padding?: "none" | "sm" | "md" | "lg";
 }
@@ -14,7 +10,7 @@ const paddingClasses = {
   sm: "p-4",
   md: "p-5",
   lg: "p-6",
-};
+} as const;
 
 function Card({
   children,
@@ -25,8 +21,8 @@ function Card({
   return (
     <div
       className={[
-        "rounded-2xl border border-slate-200",
-        "bg-white shadow-sm",
+        "rounded-2xl border border-slate-200/80 bg-white shadow-sm",
+        "transition-shadow duration-300",
         paddingClasses[padding],
         className,
       ]

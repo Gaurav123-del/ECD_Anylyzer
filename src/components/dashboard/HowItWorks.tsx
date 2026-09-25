@@ -1,202 +1,318 @@
 import {
   Activity,
+  ArrowRight,
   BrainCircuit,
+  CheckCircle2,
   FileSearch,
   Upload,
 } from "lucide-react";
 
 import Card from "../common/Card";
 
-/*
- * ============================================================
- * TYPES
- * ============================================================
- */
-
-interface Step {
-  number: string;
-  title: string;
-  description: string;
-  icon: typeof Upload;
-}
-
-/*
- * ============================================================
- * STEPS
- * ============================================================
- */
-
-const steps: Step[] = [
+const steps = [
   {
     number: "01",
-    title: "Upload ECG",
-    description:
-      "Upload a supported ECG image or PDF from your device.",
     icon: Upload,
+    title: "Upload your ECG",
+    description:
+      "Select a JPG, PNG, or PDF ECG report from your device.",
   },
   {
     number: "02",
-    title: "View & Inspect",
+    icon: Activity,
+    title: "View the recording",
     description:
-      "Use zoom, pan, page navigation, and fullscreen controls to inspect the ECG.",
-    icon: FileSearch,
+      "Inspect the ECG using zoom, pan, page navigation, and fullscreen controls.",
   },
   {
     number: "03",
-    title: "AI Analysis",
-    description:
-      "Send the ECG to the connected AI analysis service and receive structured results.",
     icon: BrainCircuit,
+    title: "Run AI analysis",
+    description:
+      "Send the ECG to the connected analysis service for AI-assisted processing.",
+  },
+  {
+    number: "04",
+    icon: FileSearch,
+    title: "Review results",
+    description:
+      "Review prediction, confidence, heart rate, rhythm, and available findings.",
   },
 ];
 
-/*
- * ============================================================
- * ECG WAVEFORM
- * ============================================================
- */
-
 function ECGWaveform() {
   return (
-    <div className="overflow-hidden rounded-xl border border-blue-100 bg-blue-50/60 p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <Activity
-          className="h-4 w-4 text-blue-600"
-          aria-hidden="true"
-        />
+    <svg
+      viewBox="0 0 900 180"
+      className="h-auto w-full"
+      role="img"
+      aria-label="Illustrative ECG waveform"
+      fill="none"
+    >
+      <defs>
+        <pattern
+          id="ecg-small-grid"
+          width="18"
+          height="18"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M18 0L0 0 0 18"
+            stroke="currentColor"
+            strokeWidth="0.6"
+            className="text-blue-100"
+          />
+        </pattern>
 
-        <span className="text-xs font-semibold text-slate-600">
-          ECG Preview
-        </span>
-      </div>
+        <pattern
+          id="ecg-large-grid"
+          width="90"
+          height="90"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect
+            width="90"
+            height="90"
+            fill="url(#ecg-small-grid)"
+          />
 
-      <svg
-        viewBox="0 0 600 150"
-        className="h-auto w-full"
-        role="img"
-        aria-label="Illustrative ECG waveform"
-      >
-        <path
-          d="M0 82 H55 L68 81 L78 78 L90 82 H135 L148 82 L160 48 L171 120 L185 18 L200 82 H250 L263 82 L275 80 L286 78 L298 82 H340 L353 82 L365 48 L376 120 L390 18 L405 82 H455 L468 82 L480 80 L492 78 L505 82 H600"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-blue-500"
-        />
-      </svg>
+          <path
+            d="M90 0L0 0 0 90"
+            stroke="currentColor"
+            strokeWidth="1"
+            className="text-blue-200"
+          />
+        </pattern>
+      </defs>
 
-      <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
-        <span>Illustrative waveform</span>
-        <span>For UI demonstration</span>
-      </div>
-    </div>
+      <rect
+        width="900"
+        height="180"
+        fill="url(#ecg-large-grid)"
+      />
+
+      <path
+        d="
+          M0 90
+          L55 90
+          L70 87
+          L82 90
+          L100 90
+          L115 72
+          L125 108
+          L137 90
+          L195 90
+
+          L210 90
+          L225 86
+          L238 90
+          L258 90
+          L275 35
+          L287 145
+          L300 90
+          L360 90
+
+          L375 90
+          L390 87
+          L403 90
+          L423 90
+          L438 72
+          L450 108
+          L462 90
+          L520 90
+
+          L535 90
+          L550 86
+          L563 90
+          L583 90
+          L600 35
+          L612 145
+          L625 90
+          L685 90
+
+          L700 90
+          L715 87
+          L728 90
+          L748 90
+          L763 72
+          L775 108
+          L787 90
+          L845 90
+
+          L860 90
+          L875 86
+          L888 90
+          L900 90
+        "
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="text-blue-600"
+      />
+
+      <path
+        d="M0 90H900"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        strokeDasharray="4 8"
+        className="text-blue-300/50"
+      />
+    </svg>
   );
 }
 
-/*
- * ============================================================
- * HOW IT WORKS
- * ============================================================
- */
-
 function HowItWorks() {
   return (
-    <Card
-      padding="lg"
-      className="h-fit"
+    <section
+      aria-labelledby="how-it-works-heading"
+      className="relative py-4 sm:py-8"
     >
-      {/* ======================================================
-          HEADER
-          ====================================================== */}
+      <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-blue-700">
+            <Activity size={12} />
+            Simple Workflow
+          </div>
 
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-          Simple workflow
-        </p>
+          <h2
+            id="how-it-works-heading"
+            className="mt-5 text-3xl font-bold tracking-[-0.03em] text-slate-950 sm:text-4xl"
+          >
+            From ECG upload to
+            <span className="text-blue-600">
+              {" "}
+              structured insights
+            </span>
+          </h2>
 
-        <h2 className="mt-1 text-xl font-bold text-slate-900">
-          How It Works
-        </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base">
+            Follow a simple four-step workflow to upload,
+            inspect, analyze, and review your ECG report.
+          </p>
+        </div>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Analyze an ECG in three straightforward steps.
-        </p>
-      </div>
+        <div className="relative mt-12">
+          <div className="absolute left-[12.5%] right-[12.5%] top-[46px] hidden h-px bg-gradient-to-r from-blue-100 via-blue-300 to-blue-100 lg:block" />
 
-      {/* ======================================================
-          STEPS
-          ====================================================== */}
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
 
-      <div className="mt-6 space-y-5">
-        {steps.map(
-          ({
-            number,
-            title,
-            description,
-            icon: Icon,
-          }) => (
-            <div
-              key={number}
-              className="flex gap-4"
-            >
-              <div className="relative shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-                  <Icon
-                    className="h-5 w-5 text-blue-600"
-                    aria-hidden="true"
-                  />
+              return (
+                <div
+                  key={step.number}
+                  className="group relative"
+                >
+                  <Card
+                    padding="none"
+                    className="relative h-full overflow-hidden border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-blue-200 hover:shadow-[0_18px_45px_rgba(15,23,42,0.08)]"
+                  >
+                    <div className="h-1 bg-gradient-to-r from-blue-500 to-cyan-400 opacity-70 transition-opacity group-hover:opacity-100" />
+
+                    <div className="p-5 sm:p-6">
+                      <div className="flex items-center justify-between">
+                        <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600 shadow-sm transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-lg group-hover:shadow-blue-600/20">
+                          <Icon
+                            size={21}
+                            strokeWidth={2}
+                          />
+                        </div>
+
+                        <span className="text-3xl font-bold tracking-tight text-slate-100 transition-colors group-hover:text-blue-50">
+                          {step.number}
+                        </span>
+                      </div>
+
+                      <h3 className="mt-6 text-[15px] font-bold tracking-tight text-slate-900">
+                        {step.title}
+                      </h3>
+
+                      <p className="mt-2.5 text-sm leading-6 text-slate-500">
+                        {step.description}
+                      </p>
+
+                      {index < steps.length - 1 && (
+                        <div className="mt-5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-300 transition-colors group-hover:text-blue-500">
+                          <span>
+                            Next step
+                          </span>
+
+                          <ArrowRight size={12} />
+                        </div>
+                      )}
+
+                      {index === steps.length - 1 && (
+                        <div className="mt-5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                          <CheckCircle2 size={13} />
+                          Complete
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="relative mt-10 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-sky-50 p-4 shadow-sm sm:p-6">
+          <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-blue-200/30 blur-3xl" />
+
+          <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-cyan-200/20 blur-3xl" />
+
+          <div className="relative mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
+                  <Activity size={15} />
                 </div>
 
-                {number !== "03" && (
-                  <div className="absolute left-1/2 top-10 h-5 w-px -translate-x-1/2 bg-slate-200" />
-                )}
-              </div>
-
-              <div className="min-w-0 pt-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold text-blue-600">
-                    {number}
-                  </span>
-
-                  <h3 className="text-sm font-semibold text-slate-900">
-                    {title}
-                  </h3>
-                </div>
-
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {description}
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-600">
+                  ECG Preview
                 </p>
               </div>
+
+              <p className="mt-2 text-sm font-bold text-slate-800">
+                High-resolution waveform visualization
+              </p>
+
+              <p className="mt-1 text-xs text-slate-500">
+                Designed for focused waveform inspection.
+              </p>
             </div>
-          )
-        )}
+
+            <div className="flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-[10px] font-bold text-emerald-700 shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+
+              Ready for ECG upload
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+            <ECGWaveform />
+          </div>
+
+          <div className="relative mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              ECG waveform preview
+            </div>
+
+            <div className="flex items-center gap-3 text-[10px] font-medium text-slate-400">
+              <span>Upload</span>
+              <ArrowRight size={11} />
+              <span>Analyze</span>
+              <ArrowRight size={11} />
+              <span>Review</span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* ======================================================
-          ECG PREVIEW
-          ====================================================== */}
-
-      <div className="mt-7">
-        <ECGWaveform />
-      </div>
-
-      {/* ======================================================
-          STATUS
-          ====================================================== */}
-
-      <div className="mt-4 flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2.5">
-        <span
-          className="h-2 w-2 rounded-full bg-emerald-500"
-          aria-hidden="true"
-        />
-
-        <p className="text-xs text-slate-500">
-          Ready for ECG upload
-        </p>
-      </div>
-    </Card>
+    </section>
   );
 }
 

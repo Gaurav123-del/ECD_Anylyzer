@@ -1,139 +1,104 @@
-import {
-  useCallback,
-  useState,
-} from "react";
+import { useCallback, useState } from "react";
 
 import { analyzeECG } from "../services/api";
-
-import {
-  saveECGHistory,
-} from "../utils/historyStorage";
-
 import type {
   AnalysisState,
+  ECGAnalysisResult,
 } from "../types/ecg";
 
-const INITIAL_STATE: AnalysisState = {
-  status: "idle",
-  result: null,
-  error: null,
-};
+import { saveHistoryItem } from "../utils/historyStorage";
 
-export function useECGAnalysis() {
-  const [state, setState] =
-    useState<AnalysisState>(
-      INITIAL_STATE
-    );
+function createHistoryId(): string {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
 
-  /*
-   * Analyze ECG
-   */
-  const analyze = useCallback(
-    async (file: File) => {
+  return `${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}`;
+}
+
+function useECGAnalysis() {
+  const [state, setState] = useState<AnalysisState>({
+    status: "idle",
+    result: null,
+    error: null,
+  });
+
+  const analyze = useCallback(async (file: File) => {
+    setState({
+      status: "processing",
+      result: null,
+      error: null,
+    });
+
+    try {
+      const response = await analyzeECG(file);
+
+      const result: ECGAnalysisResult = {
+        status: "success",
+        prediction: response.prediction,
+        confidence: response.confidence,
+        heartRate: response.heartRate,
+        rhythm: response.rhythm,
+        findings: Array.isArray(response.findings)
+          ? response.findings
+          : [],
+      };
+
+      saveHistoryItem({
+        id: createHistoryId(),
+        fileName: file.name,
+        fileSize: file.size,
+        createdAt: new Date().toISOString(),
+        prediction: result.prediction,
+        confidence: result.confidence,
+        heartRate: result.heartRate,
+        rhythm: result.rhythm,
+        findings: result.findings,
+      });
+
       setState({
-        status: "processing",
-        result: null,
+        status: "success",
+        result,
         error: null,
       });
 
-      try {
-        const response =
-          await analyzeECG(file);
+      return result;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "ECG analysis failed. Please try again.";
 
-        const result = {
-          status: "success" as const,
-          prediction:
-            response.prediction,
-          confidence:
-            response.confidence,
-          heartRate:
-            response.heartRate,
-          rhythm:
-            response.rhythm,
-          findings:
-            response.findings,
-        };
+      setState({
+        status: "error",
+        result: null,
+        error: message,
+      });
 
-        /*
-         * Update analysis state
-         */
-        setState({
-          status: "success",
-          result,
-          error: null,
-        });
+      return null;
+    }
+  }, []);
 
-        /*
-         * Save successful analysis
-         * to browser history.
-         */
-        saveECGHistory({
-          id: crypto.randomUUID(),
-
-          fileName:
-            file.name,
-
-          fileSize:
-            file.size,
-
-          createdAt:
-            new Date().toISOString(),
-
-          prediction:
-            result.prediction,
-
-          confidence:
-            result.confidence,
-
-          heartRate:
-            result.heartRate,
-
-          rhythm:
-            result.rhythm,
-
-          findings:
-            result.findings,
-        });
-      } catch (error) {
-        console.error(
-          "ECG analysis failed:",
-          error
-        );
-
-        /*
-         * Get API error message
-         */
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Unable to analyze the ECG. Please try again.";
-
-        setState({
-          status: "error",
-          result: null,
-          error: message,
-        });
-      }
-    },
-    []
-  );
-
-  /*
-   * Reset analysis
-   */
-  const resetAnalysis =
-    useCallback(() => {
-      setState(
-        INITIAL_STATE
-      );
-    }, []);
+  const resetAnalysis = useCallback(() => {
+    setState({
+      status: "idle",
+      result: null,
+      error: null,
+    });
+  }, []);
 
   return {
     status: state.status,
     result: state.result,
     error: state.error,
-
     analyze,
     resetAnalysis,
   };
 }
+
+export default useECGAnalysis;

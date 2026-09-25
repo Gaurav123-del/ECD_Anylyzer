@@ -1,5 +1,5 @@
 import {
-  Maximize,
+  Maximize2,
   Minus,
   Plus,
   RotateCcw,
@@ -7,68 +7,86 @@ import {
 
 interface ViewerControlsProps {
   zoom: number;
+  minZoom?: number;
+  maxZoom?: number;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onReset: () => void;
-  onFullscreen: () => void;
+  onFullscreen?: () => void;
 }
 
 function ViewerControls({
   zoom,
+  minZoom = 0.5,
+  maxZoom = 5,
   onZoomIn,
   onZoomOut,
   onReset,
   onFullscreen,
 }: ViewerControlsProps) {
+  const zoomPercentage = Math.round(zoom * 100);
+
+  const canZoomOut = zoom > minZoom;
+  const canZoomIn = zoom < maxZoom;
+
+  const buttonClass =
+    "flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-40";
+
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 border-t border-slate-200 bg-white p-3">
+    <div className="flex items-center gap-1.5">
       <button
         type="button"
         onClick={onZoomOut}
-        disabled={zoom <= 0.5}
+        disabled={!canZoomOut}
+        className={buttonClass}
         aria-label="Zoom out"
-        className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        title="Zoom out"
       >
-        <Minus className="h-4 w-4" />
+        <Minus size={16} />
       </button>
-
-      <span
-        aria-live="polite"
-        className="min-w-16 text-center text-sm font-medium text-slate-600"
-      >
-        {Math.round(zoom * 100)}%
-      </span>
-
-      <button
-        type="button"
-        onClick={onZoomIn}
-        disabled={zoom >= 5}
-        aria-label="Zoom in"
-        className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <Plus className="h-4 w-4" />
-      </button>
-
-      <div className="mx-1 h-6 w-px bg-slate-200" />
 
       <button
         type="button"
         onClick={onReset}
-        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50"
+        className="min-w-[64px] rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+        aria-label="Reset zoom"
+        title="Reset zoom"
       >
-        <RotateCcw className="h-4 w-4" />
-
-        Reset
+        {zoomPercentage}%
       </button>
 
       <button
         type="button"
-        onClick={onFullscreen}
-        aria-label="Open fullscreen"
-        className="rounded-lg border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-50"
+        onClick={onZoomIn}
+        disabled={!canZoomIn}
+        className={buttonClass}
+        aria-label="Zoom in"
+        title="Zoom in"
       >
-        <Maximize className="h-4 w-4" />
+        <Plus size={16} />
       </button>
+
+      <button
+        type="button"
+        onClick={onReset}
+        className={buttonClass}
+        aria-label="Reset viewer"
+        title="Reset viewer"
+      >
+        <RotateCcw size={15} />
+      </button>
+
+      {onFullscreen && (
+        <button
+          type="button"
+          onClick={onFullscreen}
+          className={buttonClass}
+          aria-label="Fullscreen"
+          title="Fullscreen"
+        >
+          <Maximize2 size={15} />
+        </button>
+      )}
     </div>
   );
 }

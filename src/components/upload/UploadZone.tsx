@@ -1,47 +1,51 @@
-import {
-  useCallback,
-  useRef,
-  useState,
-} from "react";
-
+import { useCallback, useRef, useState } from "react";
 import type {
   ChangeEvent,
   DragEvent,
+  KeyboardEvent,
 } from "react";
-
 import {
+  AlertCircle,
+  CheckCircle2,
   FileImage,
   FileText,
-  FileUp,
-  Image as ImageIcon,
-  Upload,
+  LockKeyhole,
+  UploadCloud,
+  X,
 } from "lucide-react";
 
-import { validateECGFile } from "../../utils/fileValidation";
+import {
+  ECG_ALLOWED_FILE_TYPES,
+  ECG_MAX_FILE_SIZE,
+  validateECGFile,
+} from "../../utils/fileValidation";
+import { formatFileSize } from "../../utils/formatters";
 
 interface UploadZoneProps {
-  onFileSelect: (file: File) => void;
+  selectedFile?: File | null;
+  onFileSelect: (file: File | null) => void;
 }
 
 function UploadZone({
+  selectedFile = null,
   onFileSelect,
 }: UploadZoneProps) {
-  const inputRef =
-    useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const [isDragging, setIsDragging] =
-    useState(false);
-
-  const [error, setError] =
-    useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const processFile = useCallback(
-    (file: File) => {
-      const validation =
-        validateECGFile(file);
+    (file: File | null) => {
+      if (!file) {
+        return;
+      }
+
+      const validation = validateECGFile(file);
 
       if (!validation.valid) {
         setError(validation.error);
+        onFileSelect(null);
         return;
       }
 
@@ -51,153 +55,300 @@ function UploadZone({
     [onFileSelect]
   );
 
-  const handleInputChange = (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const file =
-      event.target.files?.[0];
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0] ?? null;
 
-    if (file) {
       processFile(file);
-    }
+      event.target.value = "";
+    },
+    [processFile]
+  );
 
-    event.target.value = "";
-  };
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-  const handleDrop = (
-    event: DragEvent<HTMLDivElement>
-  ) => {
-    event.preventDefault();
+      setIsDragging(false);
 
-    setIsDragging(false);
+      const file = event.dataTransfer.files?.[0] ?? null;
 
-    const file =
-      event.dataTransfer.files?.[0];
-
-    if (file) {
       processFile(file);
-    }
-  };
+    },
+    [processFile]
+  );
+
+  const handleDragOver = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      setIsDragging(true);
+    },
+    []
+  );
+
+  const handleDragLeave = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      setIsDragging(false);
+    },
+    []
+  );
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (
+        event.key === "Enter" ||
+        event.key === " "
+      ) {
+        event.preventDefault();
+        inputRef.current?.click();
+      }
+    },
+    []
+  );
+
+  const handleBrowse = useCallback(() => {
+    inputRef.current?.click();
+  }, []);
+
+  const handleRemove = useCallback(() => {
+    setError(null);
+    onFileSelect(null);
+  }, [onFileSelect]);
+
+  const acceptedTypes =
+    ECG_ALLOWED_FILE_TYPES.join(",");
 
   return (
     <div>
-      {/* Upload card */}
-      <div
-        onClick={() =>
-          inputRef.current?.click()
-        }
-        onDragOver={(event) => {
-          event.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() =>
-          setIsDragging(false)
-        }
-        onDrop={handleDrop}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (
-            event.key === "Enter" ||
-            event.key === " "
-          ) {
-            inputRef.current?.click();
-          }
-        }}
-        className={`group cursor-pointer rounded-2xl border bg-white p-6 shadow-sm transition sm:p-8 ${
-          isDragging
-            ? "border-blue-500 bg-blue-50/50"
-            : "border-slate-200 hover:border-blue-300 hover:shadow-md"
-        }`}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf"
-          onChange={handleInputChange}
-          className="hidden"
-        />
+      <input
+        ref={inputRef}
+        type="file"
+        accept={acceptedTypes}
+        onChange={handleInputChange}
+        className="hidden"
+        aria-label="Upload ECG file"
+      />
 
+      {!selectedFile ? (
         <div
-          className={`rounded-xl border-2 border-dashed p-8 text-center transition sm:p-10 ${
+          role="button"
+          tabIndex={0}
+          onClick={handleBrowse}
+          onKeyDown={handleKeyDown}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={[
+            "group relative overflow-hidden rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-300 sm:p-10",
             isDragging
-              ? "border-blue-400 bg-blue-50"
-              : "border-blue-200 bg-blue-50/30 group-hover:bg-blue-50/60"
-          }`}
+              ? "scale-[1.01] border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/10"
+              : "border-slate-200 bg-gradient-to-br from-white via-white to-blue-50/30 hover:border-blue-300 hover:bg-blue-50/30 hover:shadow-lg hover:shadow-slate-900/5",
+          ].join(" ")}
         >
-          {/* Upload icon */}
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-            <FileUp className="h-8 w-8 text-blue-600" />
-          </div>
+          <div
+            className={[
+              "absolute inset-x-0 top-0 h-1 transition-all duration-300",
+              isDragging
+                ? "bg-blue-600"
+                : "bg-gradient-to-r from-transparent via-blue-500/30 to-transparent opacity-0 group-hover:opacity-100",
+            ].join(" ")}
+          />
 
-          <h2 className="mt-5 text-xl font-bold text-slate-900">
-            Upload Your ECG
-          </h2>
+          <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-blue-100/40 blur-3xl transition group-hover:bg-blue-100/70" />
 
-          <p className="mt-2 text-sm text-slate-500">
-            Upload an ECG image or PDF to view and analyze it.
-          </p>
+          <div className="absolute -bottom-20 -left-16 h-40 w-40 rounded-full bg-sky-100/40 blur-3xl" />
 
-          {/* Choose file */}
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              inputRef.current?.click();
-            }}
-            className="mx-auto mt-6 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            <Upload className="h-4 w-4" />
-            Choose File
-          </button>
+          <div className="relative">
+            <div
+              className={[
+                "mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border shadow-sm transition-all duration-300",
+                isDragging
+                  ? "border-blue-200 bg-blue-100 text-blue-700 shadow-blue-500/10"
+                  : "border-blue-100 bg-blue-50 text-blue-600 group-hover:-translate-y-1 group-hover:bg-blue-100 group-hover:shadow-md",
+              ].join(" ")}
+            >
+              <UploadCloud
+                size={34}
+                strokeWidth={1.8}
+              />
+            </div>
 
-          <p className="mt-3 text-sm text-slate-500">
-            or drag and drop your ECG here
-          </p>
+            <div className="mx-auto mt-6 max-w-lg">
+              <h3 className="text-lg font-bold tracking-tight text-slate-950 sm:text-xl">
+                {isDragging
+                  ? "Drop your ECG file here"
+                  : "Upload your ECG report"}
+              </h3>
 
-          <p className="mt-1 text-xs text-slate-400">
-            JPG, PNG or PDF (Max 20 MB)
-          </p>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Drag and drop your ECG file here, or browse
+                your device to select a report.
+              </p>
+            </div>
 
-          {/* File types */}
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-4 py-1.5 text-xs font-medium text-slate-600">
-              <ImageIcon className="h-3.5 w-3.5" />
-              JPG
-            </span>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleBrowse();
+              }}
+              className="mt-7 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/25 active:translate-y-0"
+            >
+              <UploadCloud size={17} />
+              Choose ECG File
+            </button>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-4 py-1.5 text-xs font-medium text-slate-600">
-              <ImageIcon className="h-3.5 w-3.5" />
-              PNG
-            </span>
+            <div className="mx-auto mt-7 flex max-w-md flex-wrap items-center justify-center gap-2.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm">
+                <FileImage
+                  size={13}
+                  className="text-blue-500"
+                />
+                JPG / PNG
+              </span>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-4 py-1.5 text-xs font-medium text-slate-600">
-              <FileText className="h-3.5 w-3.5 text-red-500" />
-              PDF
-            </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-sm">
+                <FileText
+                  size={13}
+                  className="text-blue-500"
+                />
+                PDF
+              </span>
+
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-500 shadow-sm">
+                Max {formatFileSize(ECG_MAX_FILE_SIZE)}
+              </span>
+            </div>
+
+            <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-2 border-t border-slate-100 pt-5 text-[11px] font-medium text-slate-400">
+              <LockKeyhole
+                size={13}
+                className="text-emerald-500"
+              />
+              Secure file handling
+              <span className="text-slate-300">•</span>
+              Simple clinical workflow
+            </div>
           </div>
         </div>
+      ) : (
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-blue-50/40 p-5 shadow-sm sm:p-6">
+          <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-emerald-100/50 blur-3xl" />
 
-        {/* Secure notice */}
-        <div className="mt-4 flex items-center gap-3 rounded-lg bg-blue-50 px-4 py-3">
-          <FileImage className="h-5 w-5 shrink-0 text-blue-600" />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white bg-white text-emerald-600 shadow-md">
+              {selectedFile.type === "application/pdf" ? (
+                <FileText size={27} />
+              ) : (
+                <FileImage size={27} />
+              )}
+            </div>
 
-          <p className="text-xs leading-5 text-slate-500">
-            Your files are processed securely and kept
-            confidential. AI-generated results should be
-            reviewed by a qualified healthcare professional.
-          </p>
-        </div>
-      </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100">
+                  <CheckCircle2
+                    size={14}
+                    className="text-emerald-600"
+                  />
+                </div>
 
-      {error && (
-        <div
-          role="alert"
-          className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
-        >
-          {error}
+                <p className="text-sm font-bold text-emerald-700">
+                  ECG file ready
+                </p>
+              </div>
+
+              <p className="mt-1.5 truncate text-sm font-semibold text-slate-900">
+                {selectedFile.name}
+              </p>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <span>
+                  {formatFileSize(selectedFile.size)}
+                </span>
+
+                <span className="text-slate-300">
+                  •
+                </span>
+
+                <span>
+                  {selectedFile.type ===
+                  "application/pdf"
+                    ? "PDF document"
+                    : "Image file"}
+                </span>
+
+                <span className="text-slate-300">
+                  •
+                </span>
+
+                <span className="font-medium text-emerald-600">
+                  Valid file
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRemove}
+              className="flex h-10 w-10 shrink-0 items-center justify-center self-start rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:self-center"
+              aria-label="Remove selected ECG"
+              title="Remove file"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="relative mt-5 flex items-center gap-2 rounded-xl border border-emerald-100 bg-white/80 px-4 py-3">
+            <CheckCircle2
+              size={15}
+              className="shrink-0 text-emerald-500"
+            />
+
+            <p className="text-xs font-medium text-slate-600">
+              Your ECG is ready to be reviewed in the
+              analysis workspace.
+            </p>
+          </div>
         </div>
       )}
+
+      {error && (
+        <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-700 shadow-sm">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-100">
+            <AlertCircle size={16} />
+          </div>
+
+          <div className="pt-0.5">
+            <p className="font-semibold">
+              Upload failed
+            </p>
+
+            <p className="mt-0.5 text-xs leading-5 text-red-600">
+              {error}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 flex items-center justify-center gap-2 text-center text-[11px] leading-5 text-slate-400">
+        <LockKeyhole
+          size={12}
+          className="shrink-0"
+        />
+
+        <p>
+          Your selected file is processed according to
+          the configured ECG analysis service.
+        </p>
+      </div>
     </div>
   );
 }

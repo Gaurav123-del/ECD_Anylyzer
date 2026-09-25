@@ -1,24 +1,79 @@
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (!Number.isFinite(bytes) || bytes < 0) {
+    return "0 B";
+  }
 
-  const units = [
-    "Bytes",
-    "KB",
-    "MB",
-    "GB",
-  ];
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
 
-  const index = Math.floor(
-    Math.log(bytes) / Math.log(1024)
-  );
+  const kb = bytes / 1024;
 
-  const size = bytes / Math.pow(1024, index);
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`;
+  }
 
-  return `${size.toFixed(index === 0 ? 0 : 1)} ${
-    units[index]
-  }`;
+  const mb = kb / 1024;
+
+  if (mb < 1024) {
+    return `${mb.toFixed(2)} MB`;
+  }
+
+  const gb = mb / 1024;
+
+  return `${gb.toFixed(2)} GB`;
 }
 
 export function formatZoom(zoom: number): string {
+  if (!Number.isFinite(zoom)) {
+    return "100%";
+  }
+
   return `${Math.round(zoom * 100)}%`;
+}
+
+export function formatConfidence(
+  confidence: number
+): string {
+  if (!Number.isFinite(confidence)) {
+    return "N/A";
+  }
+
+  const percentage =
+    confidence <= 1
+      ? confidence * 100
+      : confidence;
+
+  return `${Math.min(
+    Math.max(percentage, 0),
+    100
+  ).toFixed(1)}%`;
+}
+
+export function formatHeartRate(
+  heartRate: number | null
+): string {
+  if (
+    heartRate === null ||
+    !Number.isFinite(heartRate)
+  ) {
+    return "Not available";
+  }
+
+  return `${Math.round(heartRate)} BPM`;
+}
+
+export function formatDate(
+  date: string | number | Date
+): string {
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Unknown date";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(parsedDate);
 }

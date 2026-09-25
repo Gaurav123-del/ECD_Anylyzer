@@ -6,7 +6,9 @@ export interface ECGHistoryItem {
 
   prediction: string;
   confidence: number;
+
   heartRate: number | null;
   rhythm: string | null;
+
   findings: string[];
 }

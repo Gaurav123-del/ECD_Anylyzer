@@ -4,7 +4,7 @@ const ALLOWED_FILE_TYPES = [
   "application/pdf",
 ] as const;
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
 export interface FileValidationResult {
   valid: boolean;
@@ -12,14 +12,19 @@ export interface FileValidationResult {
 }
 
 export function validateECGFile(
-  file: File
+  file: File | null
 ): FileValidationResult {
-  if (!ALLOWED_FILE_TYPES.includes(
-    file.type as (typeof ALLOWED_FILE_TYPES)[number]
-  )) {
+  if (!file) {
     return {
       valid: false,
-      error: "Please upload a JPG, PNG, or PDF file.",
+      error: "Please select an ECG file.",
+    };
+  }
+
+  if (file.size === 0) {
+    return {
+      valid: false,
+      error: "The selected ECG file is empty.",
     };
   }
 
@@ -30,10 +35,25 @@ export function validateECGFile(
     };
   }
 
-  if (file.size === 0) {
+  const isAllowedType = ALLOWED_FILE_TYPES.includes(
+    file.type as (typeof ALLOWED_FILE_TYPES)[number]
+  );
+
+  const extension = file.name
+    .split(".")
+    .pop()
+    ?.toLowerCase();
+
+  const isAllowedExtension =
+    extension === "jpg" ||
+    extension === "jpeg" ||
+    extension === "png" ||
+    extension === "pdf";
+
+  if (!isAllowedType && !isAllowedExtension) {
     return {
       valid: false,
-      error: "The selected file is empty.",
+      error: "Please upload a JPG, PNG, or PDF file.",
     };
   }
 
@@ -42,3 +62,8 @@ export function validateECGFile(
     error: null,
   };
 }
+
+export const ECG_MAX_FILE_SIZE = MAX_FILE_SIZE;
+
+export const ECG_ALLOWED_FILE_TYPES =
+  ALLOWED_FILE_TYPES;

@@ -7,4 +7,22 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+
+  server: {
+    host: "localhost",
+    port: 5173,
+    strictPort: true,
+  },
+
+  build: {
+    target: "es2022",
+    sourcemap: false,
+    cssMinify: true,
+  },
+
+  preview: {
+    host: "localhost",
+    port: 4173,
+    strictPort: true,
+  },
 });

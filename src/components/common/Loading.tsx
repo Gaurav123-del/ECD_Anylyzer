@@ -7,25 +7,37 @@ interface LoadingProps {
 }
 
 const sizeClasses = {
-  sm: "h-4 w-4",
-  md: "h-6 w-6",
-  lg: "h-9 w-9",
-};
+  sm: {
+    spinner: 16,
+    text: "text-xs",
+  },
+  md: {
+    spinner: 24,
+    text: "text-sm",
+  },
+  lg: {
+    spinner: 32,
+    text: "text-base",
+  },
+} as const;
 
 function Loading({
   text = "Loading...",
   fullScreen = false,
   size = "md",
 }: LoadingProps) {
+  const currentSize = sizeClasses[size];
+
   const content = (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center gap-3">
       <Loader2
-        className={`${sizeClasses[size]} animate-spin text-blue-600`}
+        size={currentSize.spinner}
+        className="animate-spin text-blue-600"
         aria-hidden="true"
       />
 
       {text && (
-        <p className="mt-3 text-sm text-slate-500">
+        <p className={`${currentSize.text} text-slate-500`}>
           {text}
         </p>
       )}
@@ -41,7 +53,7 @@ function Loading({
   }
 
   return (
-    <div className="flex min-h-[200px] items-center justify-center">
+    <div className="flex min-h-32 items-center justify-center">
       {content}
     </div>
   );

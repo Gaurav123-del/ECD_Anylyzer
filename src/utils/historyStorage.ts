@@ -1,26 +1,56 @@
 import type { ECGHistoryItem } from "../types/history";
 
 const HISTORY_KEY = "ecg-analyzer-history";
+const MAX_HISTORY_ITEMS = 50;
 
-export function getECGHistory(): ECGHistoryItem[] {
+function isValidHistoryItem(
+  value: unknown
+): value is ECGHistoryItem {
+  if (
+    typeof value !== "object" ||
+    value === null
+  ) {
+    return false;
+  }
+
+  const item = value as Partial<ECGHistoryItem>;
+
+  return (
+    typeof item.id === "string" &&
+    typeof item.fileName === "string" &&
+    typeof item.fileSize === "number" &&
+    typeof item.createdAt === "string" &&
+    typeof item.prediction === "string" &&
+    typeof item.confidence === "number" &&
+    (item.heartRate === null ||
+      typeof item.heartRate === "number") &&
+    (item.rhythm === null ||
+      typeof item.rhythm === "string") &&
+    Array.isArray(item.findings) &&
+    item.findings.every(
+      (finding) => typeof finding === "string"
+    )
+  );
+}
+
+export function getHistory(): ECGHistoryItem[] {
   try {
-    const stored =
-      localStorage.getItem(HISTORY_KEY);
+    const stored = localStorage.getItem(HISTORY_KEY);
 
     if (!stored) {
       return [];
     }
 
-    const parsed = JSON.parse(stored);
+    const parsed: unknown = JSON.parse(stored);
 
     if (!Array.isArray(parsed)) {
       return [];
     }
 
-    return parsed as ECGHistoryItem[];
+    return parsed.filter(isValidHistoryItem);
   } catch (error) {
     console.error(
-      "Unable to load ECG history:",
+      "Unable to read ECG history:",
       error
     );
 
@@ -28,17 +58,18 @@ export function getECGHistory(): ECGHistoryItem[] {
   }
 }
 
-export function saveECGHistory(
+export function saveHistoryItem(
   item: ECGHistoryItem
 ): void {
   try {
-    const currentHistory =
-      getECGHistory();
+    const currentHistory = getHistory();
 
     const updatedHistory = [
       item,
-      ...currentHistory,
-    ].slice(0, 50);
+      ...currentHistory.filter(
+        (existing) => existing.id !== item.id
+      ),
+    ].slice(0, MAX_HISTORY_ITEMS);
 
     localStorage.setItem(
       HISTORY_KEY,
@@ -52,17 +83,13 @@ export function saveECGHistory(
   }
 }
 
-export function deleteECGHistory(
+export function deleteHistoryItem(
   id: string
 ): void {
   try {
-    const currentHistory =
-      getECGHistory();
-
-    const updatedHistory =
-      currentHistory.filter(
-        (item) => item.id !== id
-      );
+    const updatedHistory = getHistory().filter(
+      (item) => item.id !== id
+    );
 
     localStorage.setItem(
       HISTORY_KEY,
@@ -70,14 +97,21 @@ export function deleteECGHistory(
     );
   } catch (error) {
     console.error(
-      "Unable to delete ECG history:",
+      "Unable to delete ECG history item:",
       error
     );
   }
 }
 
-export function clearECGHistory(): void {
-  localStorage.removeItem(
-    HISTORY_KEY
-  );
+export function clearHistory(): void {
+  try {
+    localStorage.removeItem(HISTORY_KEY);
+  } catch (error) {
+    console.error(
+      "Unable to clear ECG history:",
+      error
+    );
+  }
 }
+
+export { HISTORY_KEY, MAX_HISTORY_ITEMS };
